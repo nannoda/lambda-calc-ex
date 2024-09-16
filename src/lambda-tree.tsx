@@ -9,7 +9,16 @@ export interface LambdaTreeProps {
 export const LambdaTree: Component<LambdaTreeProps> = (props) => {
     // Replace all \ with lambda
     const lambda = () => props.lambda().replaceAll("\\", "λ");
-    const [tokens, err] = () => tokenize(lambda());
+    const tokens = () => {
+        try {
+            return tokenize(lambda());
+        } catch (e) {
+            console.error(e);
+            
+            return []
+        }
+
+    };
 
 
     return (
