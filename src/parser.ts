@@ -65,33 +65,45 @@ type Application = {
 type Expression = Variable | Abstraction | Application;
 
 export function parseAST(tokens: Token[]) {
-    let curr = 0;
+    let currIndex = 0;
     function isEnd() {
-        return curr >= tokens.length
+        return currIndex >= tokens.length
+    }
+
+    function nextToken(): Token {
+        return tokens[currIndex];
     }
 
     function currToken(): Token {
-        return tokens[curr];
+        return tokens[currIndex - 1];
     }
 
-    function advance(): Token {
-        return tokens[curr++];
+    function consume(): Token {
+        console.log("Advance is called on ", nextToken());
+        return tokens[currIndex++];
     }
 
     function match(...types: TokenType[]): boolean {
-        if (!isEnd() && types.includes(currToken().type)) {
-            console.log("Matched: ", advance(), types);
+        console.log("Matching ", types);
+        if (isEnd()) {
+            console.log("Is end ", types);
+            return false;
+        }
+        if (types.includes(nextToken().type)) {
+            console.log("Matched: ", consume(), types);
             return true;
         }
+        console.log("Unmatched", currToken(), types);
+
         return false;
     }
 
-    function logCurrState() {
-        console.log({
-            curr, tokens
-        });
+    // function logCurrState() {
+    //     console.log({
+    //         curr, tokens
+    //     });
 
-    }
+    // }
 
     function parseExpression(): Expression {
         if (match("lambda")) {
@@ -102,20 +114,15 @@ export function parseAST(tokens: Token[]) {
     }
 
     function parseAbstraction(): Abstraction {
-        if (match("variable")) {
-            const param = parseVariable();
-            console.log("param", param);
-            if (!match("dot")) {
-                logCurrState();
-                throw new Error("Expected '.' after lambda parameter");
-            }
-            logCurrState();
-            const body: Expression = parseExpression();
-            return { type: 'abstraction', param, body };
-        } else {
-            throw new Error("Expect variable")
+        if (!match("variable")) {
+            throw new Error("Expect variable");
         }
-
+        const param = parseVariable();
+        if (!match("dot")) {
+            throw new Error("Expect dot");
+        }
+        const body: Expression = parseExpression();
+        return { type: 'abstraction', param, body };
     }
 
     function parseApplication(): Expression {
@@ -141,17 +148,17 @@ export function parseAST(tokens: Token[]) {
             }
             return expr;
         } else {
-            throw new Error(`Unexpected token ${JSON.stringify(currToken())}`);
+            throw new Error(`Unexpected token ${JSON.stringify(nextToken())}`);
         }
     }
 
     function parseVariable(): Variable {
-        const token = currToken();
+        const token = tokens[currIndex - 1];
         if (!token) {
-            throw new Error(`Index [${curr}] is out of bound`);
+            throw new Error(`Index [${currIndex}] is out of bound`);
         }
         if (token.type !== "variable") {
-            logCurrState();
+            // logCurrState();
             throw new Error(`Token "${JSON.stringify(token)}} " is not a variable`);
         };
         return { type: 'variable', name: token.name };
