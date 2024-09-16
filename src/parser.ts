@@ -74,18 +74,24 @@ export function parseAST(tokens: Token[]) {
         return tokens[curr];
     }
 
-    function next(): Token {
+    function advance(): Token {
         return tokens[curr++];
     }
 
     function match(...types: TokenType[]): boolean {
         if (!isEnd() && types.includes(currToken().type)) {
-            next();
+            console.log("Matched: ", advance(), types);
             return true;
         }
         return false;
     }
 
+    function logCurrState() {
+        console.log({
+            curr, tokens
+        });
+
+    }
 
     function parseExpression(): Expression {
         if (match("lambda")) {
@@ -96,12 +102,20 @@ export function parseAST(tokens: Token[]) {
     }
 
     function parseAbstraction(): Abstraction {
-        const param = parseVariable();
-        if (!match('dot')) {
-            throw new Error("Expected '.' after lambda parameter");
+        if (match("variable")) {
+            const param = parseVariable();
+            console.log("param", param);
+            if (!match("dot")) {
+                logCurrState();
+                throw new Error("Expected '.' after lambda parameter");
+            }
+            logCurrState();
+            const body: Expression = parseExpression();
+            return { type: 'abstraction', param, body };
+        } else {
+            throw new Error("Expect variable")
         }
-        const body: Expression = parseExpression();
-        return { type: 'abstraction', param, body };
+
     }
 
     function parseApplication(): Expression {
@@ -120,29 +134,31 @@ export function parseAST(tokens: Token[]) {
     function parsePrimary(): Expression {
         if (match("variable")) {
             return parseVariable();
-        } else if (match("paren-open")){
+        } else if (match("paren-open")) {
             const expr = parseExpression();
-            if (!match("paren-close")){
+            if (!match("paren-close")) {
                 throw new Error("Expected ')' after expression");
             }
             return expr;
         } else {
-            throw new Error(`Unexpected token ${currToken()}`);
+            throw new Error(`Unexpected token ${JSON.stringify(currToken())}`);
         }
     }
 
     function parseVariable(): Variable {
-        const token = next();
-        if (token.type !== "variable") {
-            throw new Error(`Token "${token}" is not a variable`);
+        const token = currToken();
+        if (!token) {
+            throw new Error(`Index [${curr}] is out of bound`);
         }
+        if (token.type !== "variable") {
+            logCurrState();
+            throw new Error(`Token "${JSON.stringify(token)}} " is not a variable`);
+        };
         return { type: 'variable', name: token.name };
     }
-
-
     return parseExpression();
 }
 
-export function parse(src: string){
+export function parse(src: string) {
     return parseAST(tokenize(src));
 }
