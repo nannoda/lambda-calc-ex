@@ -1,25 +1,31 @@
-import type { Component } from 'solid-js';
+import { createSignal, type Component } from 'solid-js';
+import { LambdaTree } from './lambda-tree';
 
-import logo from './logo.svg';
-import styles from './App.module.css';
+// import logo from './logo.svg';
+// import styles from './App.module.css';
 
 const App: Component = () => {
+  const [lambda, setLambda] = createSignal("");
+
   return (
-    <div class={styles.App}>
-      <header class={styles.header}>
-        <img src={logo} class={styles.logo} alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          class={styles.link}
-          href="https://github.com/solidjs/solid"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn Solid
-        </a>
-      </header>
+    <div
+      style={
+        {
+          display: 'flex',
+          "flex-direction":"column"
+        }
+      }
+    >
+      <input
+        oninput={(v) => { 
+          // console.log(v);
+          
+          setLambda(v.target.value) 
+        }}
+      ></input>
+      <LambdaTree
+        lambda={lambda}
+      ></LambdaTree>
     </div>
   );
 };
