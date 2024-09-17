@@ -29,10 +29,6 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
 
     const ast = () => {
         const ts = normalizedTokens();
-        // if (err) {
-        //     return err;
-        // }
-
         const [ast, astErr] = monad(parseAST, [ts]);
 
         if (astErr) {
@@ -42,17 +38,6 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
 
         return ast;
     }
-    // const astLines = () => {
-    //     const lines = JSON.stringify(ast(), null, 2).split("\n");
-    //     return lines.map(
-    //         (line) => {
-    //             return <>
-    //                 <br></br>
-    //                 <pre>{line}</pre>
-    //             </>
-    //         }
-    //     )
-    // }
 
     return (
         <div>
