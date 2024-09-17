@@ -119,24 +119,24 @@ export function tokensToString(tokens: Token[]) {
 
 
 // AST Node types
-type Variable = {
+export type Variable = {
     type: 'variable';
     name: string;
 };
 
-type Abstraction = {
+export type Abstraction = {
     type: 'abstraction';
     param: Variable;
     body: Expression;
 };
 
-type Application = {
+export type Application = {
     type: 'application';
     func: Expression;
     argument: Expression;
 };
 // Expression can be any of these three types
-type Expression = Variable | Abstraction | Application;
+export type Expression = Variable | Abstraction | Application;
 
 export function parseAST(tokens: Token[]) {
     let currIndex = 0;

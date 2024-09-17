@@ -1,6 +1,7 @@
 import { Accessor, Component } from "solid-js"
 import { normalizeTokens, parseAST, tokenize, tokensToString } from "./parser";
 import { monad } from "./monad";
+import { LambdaAstComponent } from "./lambda-ast-component";
 
 
 export interface LambdaTreeProps {
@@ -39,6 +40,16 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
         return ast;
     }
 
+    const astComponent = ()=>{
+        const node = ast();
+        if (node instanceof Error){
+            return <>Error</>
+        } 
+        return <LambdaAstComponent
+            node={node}
+        ></LambdaAstComponent>
+    }
+
     return (
         <div>
             {tokens()[0] && <p>Tokens: {JSON.stringify(tokens()[0], null, 2)}</p>}
@@ -49,6 +60,7 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
             <p>{tokensToString(normalizedTokens())}</p>
             <pre>AST: {JSON.stringify(ast(), null, 2)}</pre>
             {/* {astLines()} */}
+            {astComponent()}
         </div>
     )
 }
