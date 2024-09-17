@@ -1,5 +1,5 @@
 import { Accessor, Component } from "solid-js"
-import { parseAST, tokenize } from "./parser";
+import { normalizeTokens, parseAST, tokenize, tokensToString } from "./parser";
 import { monad } from "./monad";
 
 
@@ -9,30 +9,61 @@ export interface LambdaTreeProps {
 
 export const LambdaTree: Component<LambdaTreeProps> = (props) => {
     // Replace all \ with lambda
-    const lambda = () => props.lambda().replaceAll("\\", "λ");
-    const tokens = () => monad(tokenize, [lambda()]);
-    const ast = () => {
+    // const lambda = () => props.lambda().replaceAll("\\", "λ");
+    const tokens = () => monad(tokenize, [props.lambda()]);
+    const normalizedTokens = () => {
         const [ts, err] = tokens();
-        if (err) {
-            return err;
-        }
+        if (ts)
+            return normalizeTokens(ts);
+        return []
+    }
+
+    const lambda: Accessor<string> = () => {
+        const [ts, err] = tokens();
+        if (ts)
+            return tokensToString(ts);
+
+        return "Error tokenizing...";
+    }
+
+
+    const ast = () => {
+        const ts = normalizedTokens();
+        // if (err) {
+        //     return err;
+        // }
 
         const [ast, astErr] = monad(parseAST, [ts]);
 
-        if (astErr){
+        if (astErr) {
             console.log(astErr);
-            
-            return err;
+            return astErr;
         }
 
         return ast;
     }
+    // const astLines = () => {
+    //     const lines = JSON.stringify(ast(), null, 2).split("\n");
+    //     return lines.map(
+    //         (line) => {
+    //             return <>
+    //                 <br></br>
+    //                 <pre>{line}</pre>
+    //             </>
+    //         }
+    //     )
+    // }
+
     return (
         <div>
-            <p>Lambda: {lambda()}</p>
             {tokens()[0] && <p>Tokens: {JSON.stringify(tokens()[0], null, 2)}</p>}
             {tokens()[1] && <p>{String(tokens()[1])}</p>}
-            <p>AST: {JSON.stringify(ast(), null, 2)}</p>
+
+            <p>Lambda: {lambda()}</p>
+            <p>Normalized Tokens: {JSON.stringify(normalizedTokens())}</p>
+            <p>{tokensToString(normalizedTokens())}</p>
+            <pre>AST: {JSON.stringify(ast(), null, 2)}</pre>
+            {/* {astLines()} */}
         </div>
     )
 }

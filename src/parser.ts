@@ -16,7 +16,7 @@ export function tokenize(input: string): Token[] {
         if (/\s/.test(char)) {
             // Ignore whitespace
             i++;
-        } else if (char === 'λ') {
+        } else if (char === 'λ' || char === "\\") {
             tokens.push({ type: 'lambda' });
             i++;
         } else if (char === '.') {
@@ -41,6 +41,80 @@ export function tokenize(input: string): Token[] {
         }
     }
     return tokens;
+}
+
+export function normalizeTokens(tokens: Token[]): Token[] {
+    if (tokens.length <= 1) {
+        return tokens;
+    }
+    tokens = [...tokens];
+
+
+    let curr = tokens[0];
+    let next: Token | undefined = tokens[1];
+    let mode: "left" | "right" = "right";
+
+    let parenCount = 0;
+    for (let i = 0; i < tokens.length; i++) {
+        curr = tokens[i];
+        next = tokens[i + 1];
+
+        if (curr.type === "lambda") {
+            mode = "left";
+            continue;
+        }
+
+        if (curr.type === "dot") {
+            mode = "right";
+            continue;
+        }
+
+        if (mode === "left") {
+            if (curr.type === "variable" && next && next.type === "variable") {
+                tokens.splice(i + 1, 0, {
+                    type: "lambda"
+                })
+                tokens.splice(i + 1, 0, {
+                    type: "dot"
+                })
+            }
+        }
+
+        if (mode === "right") {
+            if (curr.type === "variable" && next && next.type === "variable") {
+                tokens.splice(i + 1, 0, {
+                    type: "paren-open"
+                });
+                parenCount++;
+                i++;
+            } else if (parenCount > 0) {
+                parenCount--;
+                // i++;
+                console.log(i);
+                
+                tokens.splice(i + 1, 0, {
+                    type: "paren-close"
+                });
+            }
+        }
+    }
+    return tokens;
+}
+
+export function tokensToString(tokens: Token[]) {
+    let res = "";
+    for (let i = 0; i < tokens.length; i++) {
+        res += " ";
+        const curr = tokens[i];
+        switch (curr.type) {
+            case "lambda": res += "λ"; break;
+            case "dot": res += "."; break;
+            case "paren-open": res += "("; break;
+            case "paren-close": res += ")"; break;
+            case "variable": res += (curr as { name: string }).name; break;
+        }
+    }
+    return res;
 }
 
 
@@ -79,7 +153,7 @@ export function parseAST(tokens: Token[]) {
     }
 
     function consume(): Token {
-        console.log("Advance is called on ", nextToken());
+        console.log("Consume is called on ", nextToken());
         return tokens[currIndex++];
     }
 
@@ -97,13 +171,6 @@ export function parseAST(tokens: Token[]) {
 
         return false;
     }
-
-    // function logCurrState() {
-    //     console.log({
-    //         curr, tokens
-    //     });
-
-    // }
 
     function parseExpression(): Expression {
         if (match("lambda")) {
