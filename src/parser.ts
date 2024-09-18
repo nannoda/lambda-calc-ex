@@ -193,12 +193,20 @@ export function parseAST(tokens: Token[]) {
     }
 
     function parseApplication(): Expression {
+        console.log("parseApplication()");
+        
         let expr: Expression = parsePrimary();  // Get the first part of the application
+        // if (match("variable")){
+        //     const arg = parseExpression();
+        //     expr = { type: 'application', func: expr, argument: arg };
+        // }
+
+        // let parenOpen = false;
         while (match('paren-open')) {
             const arg = parseExpression();  // Parse the argument
             if (!match('paren-close')) {
                 throw new Error("Expected ')' after application argument");
-            }
+            };
             expr = { type: 'application', func: expr, argument: arg };
         }
 
