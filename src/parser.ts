@@ -64,7 +64,7 @@ export function normalizeTokens(tokens: Token[]): Token[] {
             continue;
         }
 
-        if (curr.type === "dot" || curr.type=== "paren-open") {
+        if (curr.type === "dot") {
             mode = "right";
             continue;
         }
