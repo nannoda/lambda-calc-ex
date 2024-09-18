@@ -47,59 +47,59 @@ export function normalizeTokens(tokens: Token[]): Token[] {
     if (tokens.length <= 1) {
         return tokens;
     }
-    tokens = [...tokens];
 
+    tokens = [...tokens];  // Copy tokens to avoid mutating the original array
 
-    let curr = tokens[0];
-    let next: Token | undefined = tokens[1];
-    let mode: "left" | "right" = "right";
+    let mode: "left" | "right" = "right";  // Start in the right mode (function body)
+    let parenCount = 0;  // Track the number of open parentheses
 
-    let parenCount = 0;
     for (let i = 0; i < tokens.length; i++) {
-        curr = tokens[i];
-        next = tokens[i + 1];
+        let curr = tokens[i];
+        let next = tokens[i + 1];
 
         if (curr.type === "lambda") {
-            mode = "left";
+            mode = "left";  // Switch to left mode (lambda parameters)
             continue;
         }
 
         if (curr.type === "dot") {
-            mode = "right";
+            mode = "right";  // Switch back to right mode (lambda body)
             continue;
         }
 
         if (mode === "left") {
+            // Ensure that variables in the left mode are followed by a dot if another variable appears
             if (curr.type === "variable" && next && next.type === "variable") {
-                tokens.splice(i + 1, 0, {
-                    type: "lambda"
-                })
-                tokens.splice(i + 1, 0, {
-                    type: "dot"
-                })
+                tokens.splice(i + 1, 0, { type: "dot" });
+                i++;  // Skip to the next token after insertion
             }
-        }
-
-        if (mode === "right") {
+        } else if (mode === "right") {
+            // Ensure that variables in the right mode (function application) are properly parenthesized
             if (curr.type === "variable" && next && next.type === "variable") {
-                tokens.splice(i + 1, 0, {
-                    type: "paren-open"
-                });
+                // Insert open parenthesis before the next variable (function application)
+                tokens.splice(i + 1, 0, { type: "paren-open" });
                 parenCount++;
-                i++;
-            } else if (parenCount > 0) {
+                i++;  // Skip to the next token after insertion
+            }
+
+            // If there are parentheses to close, insert paren-close at the correct spot
+            if (parenCount > 0 && (!next || next.type !== "variable")) {
+                tokens.splice(i + 1, 0, { type: "paren-close" });
                 parenCount--;
-                // i++;
-                console.log(i);
-                
-                tokens.splice(i + 1, 0, {
-                    type: "paren-close"
-                });
+                i++;  // Skip to the next token after insertion
             }
         }
     }
+
+    // In case there are still unclosed parentheses, close them at the end
+    while (parenCount > 0) {
+        tokens.push({ type: "paren-close" });
+        parenCount--;
+    }
+
     return tokens;
 }
+
 
 export function tokensToString(tokens: Token[]) {
     let res = "";
