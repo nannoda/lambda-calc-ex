@@ -50,32 +50,55 @@ export function normalizeTokens(tokens: Token[]): Token[] {
 
     tokens = [...tokens];  // Copy tokens to avoid mutating the original array
 
-    let mode: "left" | "right" = "right";  // Start in the right mode (function body)
+
+
+    let mode: "param" | "body" = "body";  // Start in the right mode (function body)
     let parenCount = 0;  // Track the number of open parentheses
+
+    let hasDot = false;
+    for (const token of tokens){
+        if (token.type === "dot"){
+            hasDot = true;
+            break;
+        }
+    }
 
     for (let i = 0; i < tokens.length; i++) {
         let curr = tokens[i];
         let next = tokens[i + 1];
 
         if (curr.type === "lambda") {
-            mode = "left";  // Switch to left mode (lambda parameters)
+            mode = "param";  // Switch to left mode (lambda parameters)
             continue;
         }
 
         if (curr.type === "dot") {
-            mode = "right";  // Switch back to right mode (lambda body)
+            mode = "body";  // Switch back to right mode (lambda body)
             continue;
         }
 
-        if (mode === "left") {
+        if (mode === "param") {
+            if(!hasDot){
+                throw new Error("Expect body");
+            }
+
             // Ensure that variables in the left mode are followed by a dot if another variable appears
             if (curr.type === "variable" && next && next.type === "variable") {
                 tokens.splice(i + 1, 0, { type: "dot" });
                 i++;  // Skip to the next token after insertion
             }
-        } else if (mode === "right") {
-            // Ensure that variables in the right mode (function application) are properly parenthesized
-            if (curr.type === "variable" && next && next.type === "variable") {
+        } else if (mode === "body") {
+            // Ensure that variables in the right mode (function application) are properly parenthesized case 
+            // a b => a (b)
+            if (curr.type === "variable" && next && next.type === "variable"
+            ) {
+                // Insert open parenthesis before the next variable (function application)
+                tokens.splice(i + 1, 0, { type: "paren-open" });
+                parenCount++;
+                i++;  // Skip to the next token after insertion
+            }
+
+            if (curr.type === "paren-close" && next && next.type === "variable") {
                 // Insert open parenthesis before the next variable (function application)
                 tokens.splice(i + 1, 0, { type: "paren-open" });
                 parenCount++;
@@ -87,7 +110,7 @@ export function normalizeTokens(tokens: Token[]): Token[] {
                 tokens.splice(i + 1, 0, { type: "paren-close" });
                 parenCount--;
                 i++;  // Skip to the next token after insertion
-            }
+            };
         }
     }
 
@@ -194,14 +217,8 @@ export function parseAST(tokens: Token[]) {
 
     function parseApplication(): Expression {
         console.log("parseApplication()");
-        
-        let expr: Expression = parsePrimary();  // Get the first part of the application
-        // if (match("variable")){
-        //     const arg = parseExpression();
-        //     expr = { type: 'application', func: expr, argument: arg };
-        // }
 
-        // let parenOpen = false;
+        let expr: Expression = parsePrimary();  // Get the first part of the application
         while (match('paren-open')) {
             const arg = parseExpression();  // Parse the argument
             if (!match('paren-close')) {
