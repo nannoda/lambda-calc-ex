@@ -44,10 +44,6 @@ export function tokenize(input: string): Token[] {
 }
 
 export function normalizeTokens(tokens: Token[]): Token[] {
-    // if (tokens.length <= 1) {
-    //     return tokens;
-    // }
-
     tokens = [...tokens];  // Copy tokens to avoid mutating the original array
 
 

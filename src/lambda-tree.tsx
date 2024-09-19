@@ -34,7 +34,6 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
         return "Error tokenizing...";
     }
 
-
     const ast = () => {
         const ts = normalizedTokens();
         const [ast, astErr] = monad(parseAST, [ts]);
@@ -66,6 +65,7 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
 
     return (
         <div>
+            {astComponent()}
             {tokens()[0] && <p>Tokens: {JSON.stringify(tokens()[0], null, 2)}</p>}
             {tokens()[1] && <p>{String(tokens()[1])}</p>}
 
@@ -77,7 +77,7 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
             <p>{tokensToString(normalizedTokens())}</p>
             {astText()}
             {/* {astLines()} */}
-            {astComponent()}
+
         </div>
     )
 }
