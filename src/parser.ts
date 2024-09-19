@@ -1,9 +1,9 @@
 
 
 // Token types
-type Token = { type: 'lambda' | 'dot' | 'paren-open' | 'paren-close' } |
+export type Token = { type: 'lambda' | 'dot' | 'paren-open' | 'paren-close' } |
 { type: "variable", name: string };
-type TokenType = Token["type"];
+export type TokenType = Token["type"];
 
 // Tokenizer function
 export function tokenize(input: string): Token[] {
@@ -44,12 +44,11 @@ export function tokenize(input: string): Token[] {
 }
 
 export function normalizeTokens(tokens: Token[]): Token[] {
-    if (tokens.length <= 1) {
-        return tokens;
-    }
+    // if (tokens.length <= 1) {
+    //     return tokens;
+    // }
 
     tokens = [...tokens];  // Copy tokens to avoid mutating the original array
-
 
 
     let mode: "param" | "body" = "body";  // Start in the right mode (function body)
@@ -59,6 +58,8 @@ export function normalizeTokens(tokens: Token[]): Token[] {
     for (const token of tokens){
         if (token.type === "dot"){
             hasDot = true;
+            console.log("Found dot");
+            
             break;
         }
     }

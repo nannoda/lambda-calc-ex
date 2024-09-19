@@ -1,5 +1,5 @@
-import { Accessor, Component } from "solid-js"
-import { normalizeTokens, parseAST, tokenize, tokensToString } from "./parser";
+import { Accessor, Component, createSignal } from "solid-js"
+import { normalizeTokens, parseAST, Token, tokenize, tokensToString } from "./parser";
 import { monad } from "./monad";
 import { LambdaAstComponent } from "./lambda-ast-component";
 
@@ -12,11 +12,19 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
     // Replace all \ with lambda
     // const lambda = () => props.lambda().replaceAll("\\", "λ");
     const tokens = () => monad(tokenize, [props.lambda()]);
-    const normalizedTokens = () => {
+
+    const [normalizeErr, setNormalizeErr] = createSignal(null as null | Error);
+    const normalizedTokens: Accessor<Token[]> = () => {
         const [ts, err] = tokens();
-        if (ts)
-            return normalizeTokens(ts);
-        return []
+        if (ts) {
+            const [normalizedTokens, err] = monad(normalizeTokens, [ts]);
+            if (normalizedTokens)
+                return normalizedTokens as Token[];
+            if (err) {
+                setNormalizeErr(err);
+            }
+        }
+        return [] as Token[]
     }
 
     const lambda: Accessor<string> = () => {
@@ -62,7 +70,10 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
             {tokens()[1] && <p>{String(tokens()[1])}</p>}
 
             <p>Lambda: {lambda()}</p>
-            <p>Normalized Tokens: {JSON.stringify(normalizedTokens())}</p>
+            {
+                normalizeErr() ? <p>{normalizeErr()?.message}</p> : <p>Normalized Tokens: {JSON.stringify(normalizedTokens())}</p>
+            }
+
             <p>{tokensToString(normalizedTokens())}</p>
             {astText()}
             {/* {astLines()} */}
