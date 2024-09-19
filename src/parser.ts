@@ -51,14 +51,15 @@ export function normalizeTokens(tokens: Token[]): Token[] {
     let parenCount = 0;  // Track the number of open parentheses
 
     let hasDot = false;
-    for (const token of tokens){
-        if (token.type === "dot"){
+    for (const token of tokens) {
+        if (token.type === "dot") {
             hasDot = true;
             console.log("Found dot");
-            
             break;
         }
     }
+
+    let paramLevel = 0;
 
     for (let i = 0; i < tokens.length; i++) {
         let curr = tokens[i];
@@ -75,16 +76,15 @@ export function normalizeTokens(tokens: Token[]): Token[] {
         }
 
         if (mode === "param") {
-            if(!hasDot){
+            if (!hasDot) {
                 throw new Error("Expect body");
             }
-
             // Ensure that variables in the left mode are followed by a dot if another variable appears
             if (curr.type === "variable" && next && next.type === "variable") {
                 tokens.splice(i + 1, 0, { type: "dot" });
                 i++;  // Skip to the next token after insertion
                 tokens.splice(i + 1, 0, { type: "lambda" });
-                
+                i++;
             }
         } else if (mode === "body") {
             // Ensure that variables in the right mode (function application) are properly parenthesized case 
@@ -96,7 +96,6 @@ export function normalizeTokens(tokens: Token[]): Token[] {
                 parenCount++;
                 i++;  // Skip to the next token after insertion
             }
-
             if (curr.type === "paren-close" && next && next.type === "variable") {
                 // Insert open parenthesis before the next variable (function application)
                 tokens.splice(i + 1, 0, { type: "paren-open" });
@@ -104,11 +103,14 @@ export function normalizeTokens(tokens: Token[]): Token[] {
                 i++;  // Skip to the next token after insertion
             }
 
+            // if (curr.type === "")
+
             // If there are parentheses to close, insert paren-close at the correct spot
-            if (parenCount > 0 && (!next || next.type !== "variable")) {
+            if (parenCount > 0 ) {
+                i++;  // Skip to the next token after insertion
                 tokens.splice(i + 1, 0, { type: "paren-close" });
                 parenCount--;
-                i++;  // Skip to the next token after insertion
+                
             };
         }
     }
