@@ -83,6 +83,8 @@ export function normalizeTokens(tokens: Token[]): Token[] {
             if (curr.type === "variable" && next && next.type === "variable") {
                 tokens.splice(i + 1, 0, { type: "dot" });
                 i++;  // Skip to the next token after insertion
+                tokens.splice(i + 1, 0, { type: "lambda" });
+                
             }
         } else if (mode === "body") {
             // Ensure that variables in the right mode (function application) are properly parenthesized case 

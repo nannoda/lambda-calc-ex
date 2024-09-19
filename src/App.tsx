@@ -16,6 +16,7 @@ const App: Component = () => {
         }
       }
     >
+      <p>View Source Code on <a href="https://github.com/nannoda/lambda-calc-ex">GitHub</a></p>
       <input
         oninput={(v) => { 
           // console.log(v);
