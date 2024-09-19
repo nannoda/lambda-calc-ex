@@ -18,8 +18,11 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
         const [ts, err] = tokens();
         if (ts) {
             const [normalizedTokens, err] = monad(normalizeTokens, [ts]);
-            if (normalizedTokens)
+            if (normalizedTokens) {
+                setNormalizeErr(null);
                 return normalizedTokens as Token[];
+            }
+
             if (err) {
                 setNormalizeErr(err);
             }
@@ -71,7 +74,7 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
 
             <p>Lambda: {lambda()}</p>
             {
-                normalizeErr() ? <p>{normalizeErr()?.message}</p> : <p>Normalized Tokens: {JSON.stringify(normalizedTokens())}</p>
+                normalizeErr() ? <p>Normalize error: {normalizeErr()?.message}</p> : <p>Normalized Tokens: {JSON.stringify(normalizedTokens())}</p>
             }
 
             <p>{tokensToString(normalizedTokens())}</p>
