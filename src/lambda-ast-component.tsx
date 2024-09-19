@@ -23,7 +23,6 @@ export interface LambdaAstComponentProps {
 
 export const LambdaAstComponent: Component<LambdaAstComponentProps> = (props) => {
     const node = props.node;
-
     switch (node.type) {
         case "variable": return (
             <div

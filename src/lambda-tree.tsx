@@ -9,8 +9,6 @@ export interface LambdaTreeProps {
 }
 
 export const LambdaTree: Component<LambdaTreeProps> = (props) => {
-    // Replace all \ with lambda
-    // const lambda = () => props.lambda().replaceAll("\\", "λ");
     const tokens = () => monad(tokenize, [props.lambda()]);
 
     const [normalizeErr, setNormalizeErr] = createSignal(null as null | Error);
@@ -22,7 +20,6 @@ export const LambdaTree: Component<LambdaTreeProps> = (props) => {
                 setNormalizeErr(null);
                 return normalizedTokens as Token[];
             }
-
             if (err) {
                 setNormalizeErr(err);
             }
